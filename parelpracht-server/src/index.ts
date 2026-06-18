@@ -63,91 +63,105 @@ export function setupSessionSupport(dataSource: DataSource, app: Express) {
   // config();
 }
 
-AppDataSource.initialize()
-  .then(async (dataSource) => {
-    // Setup of database
-    await new UserService().setupRoles();
+/**
+ * Build the fully-configured Express app (sessions, passport, routes, static
+ * mounts, error handler) against the given data source. Does not call listen()
+ * or start timed events, so it can be reused by tests (supertest).
+ */
+export function createApp(dataSource: DataSource): Express {
+  const app = express();
 
-    const app = express();
+  app.use(expressJson({ limit: '50mb' }));
+  app.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 
-    app.use(expressJson({ limit: '50mb' }));
-    app.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
+  app.set('trust proxy', 2);
 
-    app.set('trust proxy', 2);
+  setupSessionSupport(dataSource, app);
 
-    setupSessionSupport(dataSource, app);
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
 
-    passport.serializeUser((user, done) => {
-      done(null, user.id);
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises -- async is allowed here
-    passport.deserializeUser(async (id: number, done) => {
-      try {
-        const userRepo = dataSource.getRepository(User);
-        const user = await userRepo.findOne({ where: { id }, relations: ['roles'] });
-        if (user === undefined) {
-          done(null, false);
-        }
-        done(null, user);
-      } catch (err) {
-        done(err);
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises -- async is allowed here
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      const userRepo = dataSource.getRepository(User);
+      const user = await userRepo.findOne({ where: { id }, relations: ['roles'] });
+      if (user === undefined) {
+        done(null, false);
       }
+      done(null, user);
+    } catch (err) {
+      done(err);
+    }
+  });
+
+  passport.use(LDAPStrategy);
+  passport.use(localStrategy);
+
+  app.post('/api/login/ldap', ldapLogin);
+  app.post('/api/login/local', localLogin);
+
+  RegisterRoutes(app);
+
+  app.use(methodOverride());
+
+  // Create file generation folders
+  if (!fs.existsSync(path.join(__dirname, '/../tmp'))) {
+    fs.mkdirSync(path.join(__dirname, '/../tmp'));
+  }
+  if (!fs.existsSync(path.join(__dirname, '/../data/generated'))) {
+    // Recursive so data is also created
+    fs.mkdirSync(path.join(__dirname, '/../data/generated'), { recursive: true });
+  }
+  if (!fs.existsSync(path.join(__dirname, '/../data/uploads'))) {
+    fs.mkdirSync(path.join(__dirname, '/../data/uploads'));
+  }
+  if (!fs.existsSync(path.join(__dirname, '/../data/logos'))) {
+    fs.mkdirSync(path.join(__dirname, '/../data/logos'));
+  }
+  if (!fs.existsSync(path.join(__dirname, '/../data/backgrounds'))) {
+    fs.mkdirSync(path.join(__dirname, '/../data/backgrounds'));
+  }
+
+  // Give additional error information when in development mode.
+  app.use(
+    errorhandler({
+      debug: process.env.NODE_ENV === 'development',
+      safeFields: ['message'],
+    }),
+  );
+
+  // If env file specifies development, use swagger UI
+  if (process.env.NODE_ENV === 'development') {
+    app.use('/api/swagger-ui', serverSwagger, setupSwagger(swaggerDocument));
+    app.get('/api/swagger.json', (req, res) => {
+      res.sendFile(path.join(__dirname, './public/swagger.json'));
     });
+  }
 
-    passport.use(LDAPStrategy);
-    passport.use(localStrategy);
+  app.use('/static/logos', expressStatic(path.join(__dirname, '../data/logos')));
+  app.use('/static/backgrounds', expressStatic(path.join(__dirname, '../data/backgrounds')));
 
-    app.post('/api/login/ldap', ldapLogin);
-    app.post('/api/login/local', localLogin);
+  return app;
+}
 
-    RegisterRoutes(app);
+// Only bootstrap a listening server when run directly, not when imported by tests.
+if (process.env.NODE_ENV !== 'test') {
+  AppDataSource.initialize()
+    .then(async (dataSource) => {
+      // Setup of database
+      await new UserService().setupRoles();
 
-    app.use(methodOverride());
+      const app = createApp(dataSource);
 
-    // Create file generation folders
-    if (!fs.existsSync(path.join(__dirname, '/../tmp'))) {
-      fs.mkdirSync(path.join(__dirname, '/../tmp'));
-    }
-    if (!fs.existsSync(path.join(__dirname, '/../data/generated'))) {
-      // Recursive so data is also created
-      fs.mkdirSync(path.join(__dirname, '/../data/generated'), { recursive: true });
-    }
-    if (!fs.existsSync(path.join(__dirname, '/../data/uploads'))) {
-      fs.mkdirSync(path.join(__dirname, '/../data/uploads'));
-    }
-    if (!fs.existsSync(path.join(__dirname, '/../data/logos'))) {
-      fs.mkdirSync(path.join(__dirname, '/../data/logos'));
-    }
-    if (!fs.existsSync(path.join(__dirname, '/../data/backgrounds'))) {
-      fs.mkdirSync(path.join(__dirname, '/../data/backgrounds'));
-    }
-
-    // Give additional error information when in development mode.
-    app.use(
-      errorhandler({
-        debug: process.env.NODE_ENV === 'development',
-        safeFields: ['message'],
-      }),
-    );
-
-    // If env file specifies development, use swagger UI
-    if (process.env.NODE_ENV === 'development') {
-      app.use('/api/swagger-ui', serverSwagger, setupSwagger(swaggerDocument));
-      app.get('/api/swagger.json', (req, res) => {
-        res.sendFile(path.join(__dirname, './public/swagger.json'));
+      // Announce port that is listened to in the console
+      app.listen(PORT, () => {
+        console.info(`Server is listening on port ${PORT}`);
       });
-    }
 
-    app.use('/static/logos', expressStatic(path.join(__dirname, '../data/logos')));
-    app.use('/static/backgrounds', expressStatic(path.join(__dirname, '../data/backgrounds')));
-
-    // Announce port that is listened to in the console
-    app.listen(PORT, () => {
-      console.info(`Server is listening on port ${PORT}`);
-    });
-
-    // Enable timed events
-    startEvents();
-  })
-  .catch((e) => console.error(e));
+      // Enable timed events
+      startEvents();
+    })
+    .catch((e) => console.error(e));
+}

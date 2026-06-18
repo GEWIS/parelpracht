@@ -3,7 +3,7 @@ import VATService, { VATListResponse, VATParams, VATSummary } from '../services/
 import { WrappedApiError } from '../helpers/error';
 import { ValueAddedTax } from '../entity/ValueAddedTax';
 import { validate } from '../helpers/validation';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 import { ListParams } from './ListParams';
 import { Body, Controller, Get, Post, Put, Request, Response, Route, Security, Tags } from 'tsoa';
 

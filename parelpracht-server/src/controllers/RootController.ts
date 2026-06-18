@@ -5,7 +5,7 @@ import AuthService, { AuthStatus, Profile } from '../services/AuthService';
 import ServerSettingsService, { SetupParams } from '../services/ServerSettingsService';
 import StatisticsService from '../services/StatisticsService';
 import { ldapEnabled, LoginMethods } from '../auth';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 import { Body, Controller, Get, Post, Query, Request, Response, Route, Security } from 'tsoa';
 
 export interface ResetPasswordRequest {

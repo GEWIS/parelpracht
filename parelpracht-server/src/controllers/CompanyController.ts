@@ -24,7 +24,7 @@ import BaseFile from '../entity/file/BaseFile';
 import { CompanyFile } from '../entity/file/CompanyFile';
 import StatisticsService, { ContractedProductsAnalysis } from '../services/StatisticsService';
 import { Roles } from '../entity/enums/Roles';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 import { ListParams } from './ListParams';
 import { Body, Tags, Controller, Post, Route, Put, Get, Security, Response, Delete, Request } from 'tsoa';
 

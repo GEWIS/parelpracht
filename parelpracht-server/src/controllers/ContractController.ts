@@ -29,7 +29,7 @@ import { Language } from '../entity/enums/Language';
 import { RecentContract } from '../helpers/rawQueries';
 import { ContractSummary } from '../entity/Summaries';
 import { Roles } from '../entity/enums/Roles';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 import { ListParams } from './ListParams';
 import { Body, Controller, Delete, Get, Post, Put, Request, Response, Route, Security, Tags } from 'tsoa';
 

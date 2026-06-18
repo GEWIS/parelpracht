@@ -8,7 +8,7 @@ import { WrappedApiError } from '../helpers/error';
 import { ProductCategory } from '../entity/ProductCategory';
 import { validate } from '../helpers/validation';
 import StatisticsService, { ContractedProductsAnalysis } from '../services/StatisticsService';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 import { ListParams } from './ListParams';
 import { Body, Controller, Delete, Get, Post, Put, Request, Response, Route, Security, Tags } from 'tsoa';
 

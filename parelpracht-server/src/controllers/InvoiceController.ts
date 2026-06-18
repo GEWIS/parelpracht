@@ -21,7 +21,7 @@ import { Language } from '../entity/enums/Language';
 import { InvoiceStatus } from '../entity/enums/InvoiceStatus';
 import { InvoiceSummary } from '../entity/Summaries';
 import { Roles } from '../entity/enums/Roles';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 import { ListParams } from './ListParams';
 import { Body, Controller, Post, Route, Put, Tags, Get, Security, Response, Delete, Request } from 'tsoa';
 

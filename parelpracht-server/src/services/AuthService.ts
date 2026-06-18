@@ -13,7 +13,7 @@ import { newApiKey } from '../mailer/templates/newApiKey';
 import { viewApiKey } from '../mailer/templates/viewApiKey';
 import { IdentityLDAP } from '../entity/IdentityLDAP';
 import AppDataSource from '../database';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 
 const INVALID_TOKEN = 'Invalid token.';
 export interface AuthStatus {

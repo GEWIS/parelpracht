@@ -24,7 +24,7 @@ import ProductInstanceService, { ProductInstanceListResponse } from '../services
 import { AnalysisResultByYear } from '../helpers/rawQueries';
 import { ProductPricing } from '../entity/ProductPricing';
 import { Roles } from '../entity/enums/Roles';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 import { ListParams, PaginationParams } from './ListParams';
 import { Body, Controller, Post, Route, Put, Tags, Get, Request, Response, Security, Delete } from 'tsoa';
 

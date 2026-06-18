@@ -5,7 +5,7 @@ import ContactService, { ContactListResponse, ContactParams, ContactSummary } fr
 import { validate } from '../helpers/validation';
 import { Gender } from '../entity/enums/Gender';
 import { ContactFunction } from '../entity/enums/ContactFunction';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 import { ListParams } from './ListParams';
 import { Body, Controller, Post, Route, Put, Tags, Get, Security, Response, Request, Delete } from 'tsoa';
 

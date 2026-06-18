@@ -1,6 +1,6 @@
 import { body, ValidationChain, validationResult } from 'express-validator';
 import ContactService from '../services/ContactService';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 import { ApiError, HTTPStatus } from './error';
 
 /**
