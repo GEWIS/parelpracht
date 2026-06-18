@@ -38,11 +38,14 @@
     "emitDecoratorMetadata": true,
 
     /* Advanced Options */
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    // test/ pulls in vitest/vite type defs whose .d.ts use modern subpath
+    // imports that this project's moduleResolution: "node" can't resolve.
+    "skipLibCheck": true
   },
   "ts-node": {
     "files": true
   },
-  "include": ["src", "src/**/*.json", "build/**/*.ts", "build/**/*.json"],
+  "include": ["src", "src/**/*.json", "build/**/*.ts", "build/**/*.json", "test"],
   "exclude": ["node_modules", "dist"]
 }
