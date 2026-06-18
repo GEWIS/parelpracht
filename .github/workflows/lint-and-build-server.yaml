@@ -18,5 +18,6 @@ jobs:
       prepare-command: corepack enable
       lint: true
       format: true
+      test: true
       build: true
       working-directory: parelpracht-server
