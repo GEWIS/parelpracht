@@ -5,7 +5,7 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "dev": "concurrently \"nodemon\" \"nodemon -x npx tsoa spec-and-routes\"",
-    "build": "yarn tsoa && tsc",
+    "build": "yarn tsoa && tsc -p tsconfig.build.json",
     "start": "node dist/src/index.js",
     "tsoa": "tsoa spec-and-routes",
     "test": "yarn tsoa && vitest run",

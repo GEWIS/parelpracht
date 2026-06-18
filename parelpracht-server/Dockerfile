@@ -9,6 +9,7 @@ RUN apt-get update && \
 COPY package.json /usr/src/app
 COPY yarn.lock /usr/src/app
 COPY tsconfig.json /usr/src/app
+COPY tsconfig.build.json /usr/src/app
 COPY ormconfig.json /usr/src/app
 COPY tsoa.json /usr/src/app
 COPY .yarnrc.yml /usr/src/app

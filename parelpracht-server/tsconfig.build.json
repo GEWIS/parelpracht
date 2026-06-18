@@ -1,0 +1,7 @@
+{
+  // Production build config: same as tsconfig.json but excludes test/ so the
+  // compiled output (dist/) never contains the test suite. tsconfig.json itself
+  // includes test/ purely so the editor / eslint projectService type-checks it.
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "dist", "test"]
+}
