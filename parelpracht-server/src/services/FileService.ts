@@ -35,7 +35,7 @@ import ContactService from './ContactService';
 import ContractService from './ContractService';
 import InvoiceService from './InvoiceService';
 import UserService from './UserService';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 
 export interface FileParams {
   name?: string;

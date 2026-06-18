@@ -8,7 +8,7 @@ import { Role } from '../entity/Role';
 import UserService from '../services/UserService';
 import { Roles } from '../entity/enums/Roles';
 import AppDataSource from '../database';
-import { ExpressRequest } from '../types';
+import type { ExpressRequest } from '../types';
 
 const isDefined = (i: string | undefined) => i !== undefined && i !== '';
 

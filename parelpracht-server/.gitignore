@@ -132,3 +132,6 @@ build
 local.sqlite
 
 .idea
+
+# test harness
+test/.db-config.json

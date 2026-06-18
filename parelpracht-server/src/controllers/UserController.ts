@@ -12,7 +12,7 @@ import { IdentityLDAP } from '../entity/IdentityLDAP';
 import GDPRService from '../services/GDPRService';
 import { ListParams } from './ListParams';
 import { Body, Controller, Delete, Get, Post, Put, Request, Response, Route, Security, Tags } from 'tsoa';
-import { ExpressRequest } from 'src/types';
+import type { ExpressRequest } from 'src/types';
 
 @Route('user')
 @Tags('User')
