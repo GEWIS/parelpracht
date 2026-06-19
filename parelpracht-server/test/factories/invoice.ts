@@ -187,7 +187,6 @@ export async function createInvoice(opts: CreateInvoiceOptions = {}): Promise<Cr
   const products: ProductInstance[] = [];
   const count = opts.productCount ?? 0;
   for (let i = 0; i < count; i += 1) {
-    // eslint-disable-next-line no-await-in-loop -- factory, sequential is fine
     const instance = await createProductInstance({
       company,
       createdBy,
@@ -196,7 +195,6 @@ export async function createInvoice(opts: CreateInvoiceOptions = {}): Promise<Cr
       vatCategory: opts.vatCategory,
     });
     instance.invoiceId = invoice.id;
-    // eslint-disable-next-line no-await-in-loop -- factory, sequential is fine
     products.push(await ds.getRepository(ProductInstance).save(instance));
   }
 
