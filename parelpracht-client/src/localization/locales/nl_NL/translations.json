@@ -118,11 +118,13 @@
         "country": "Land",
         "description": "Omschrijving",
         "details": "Details",
+        "email": "Emailadres",
         "invoiceAddress": "Factuuradres",
         "name": "Naam",
         "number": "Telefoonnummer",
         "postalCode": "Postcode",
-        "street": "Straat en huisnummer"
+        "street": "Straat en huisnummer",
+        "vatNumber": "Btw-nummer"
       }
     },
     "contact": {
