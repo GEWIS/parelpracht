@@ -45,7 +45,6 @@ describe('RootController endpoints', () => {
       const res = await agent.get('/api/profile').expect(200);
       expect(res.body.id).toBe(user.id);
       expect(res.body.email).toBe(user.email);
-      // getProfile annotates hasApiKey; this user has no API key.
       expect(res.body.hasApiKey).toBe(false);
       expect(Array.isArray(res.body.roles)).toBe(true);
     });
@@ -60,11 +59,9 @@ describe('RootController endpoints', () => {
     it('performs the initial setup and flips setupDone to true', async () => {
       const anon = await anonAgent();
 
-      // Before setup the public info reports setupDone=false.
       const before = await anon.get('/api/getPublicGeneralInfo').expect(200);
       expect(before.body.setupDone).toBe(false);
 
-      // void handler -> tsoa returns 204.
       await anon
         .post('/api/setup')
         .send({
@@ -98,7 +95,6 @@ describe('RootController endpoints', () => {
         },
       };
       await anon.post('/api/setup').send(body).expect(204);
-      // initialSetup throws Forbidden (403) when SETUP_DONE is already 'true'.
       await anon.post('/api/setup').send(body).expect(403);
     });
   });
@@ -118,7 +114,6 @@ describe('RootController endpoints', () => {
   describe('POST /api/forgotPassword (public)', () => {
     it('accepts an unknown email silently (204)', async () => {
       const anon = await anonAgent();
-      // email is a @Query() param, not a body field.
       await anon.post('/api/forgotPassword').query({ email: 'nobody@example.org' }).expect(204);
     });
   });

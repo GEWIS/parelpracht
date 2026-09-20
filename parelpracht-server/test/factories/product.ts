@@ -24,18 +24,12 @@ export async function createValueAddedTax(overrides: Partial<ValueAddedTax> = {}
   return repo.save(
     repo.create({
       category: VAT.HIGH,
-      // Stored * 100 as an integer (e.g. 2100 == 21%).
       amount: 2100,
       ...overrides,
     }),
   );
 }
 
-/**
- * Create a persisted product. A product requires a ProductCategory and a
- * ValueAddedTax (both real FKs); if `categoryId`/`vatId` are not supplied via
- * overrides they are created automatically.
- */
 export async function createProduct(overrides: Partial<Product> = {}): Promise<Product> {
   const ds = await getDataSource();
   const repo = ds.getRepository(Product);
@@ -47,7 +41,6 @@ export async function createProduct(overrides: Partial<Product> = {}): Promise<P
     repo.create({
       nameDutch: `${faker.commerce.productName()} (NL)`,
       nameEnglish: `${faker.commerce.productName()} (EN)`,
-      // Prices are stored as integer cents.
       targetPrice: faker.number.int({ min: 1000, max: 1_000_000 }),
       status: ProductStatus.ACTIVE,
       description: faker.commerce.productDescription(),
@@ -62,10 +55,6 @@ export async function createProduct(overrides: Partial<Product> = {}): Promise<P
   );
 }
 
-/**
- * Attach a ProductPricing row to an existing product. The pricing row shares
- * its primary key with the product (one-to-one on the product id).
- */
 export async function createProductPricing(
   productId: number,
   overrides: Partial<ProductPricing> = {},

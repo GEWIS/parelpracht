@@ -12,8 +12,6 @@ describe('authentication: POST /api/login/local', () => {
 
     await agent.post('/api/login/local').send({ email, password, rememberMe: false }).expect(200);
 
-    // The session cookie carried by the agent should authenticate a protected,
-    // role-less endpoint (@Security('local') with no scopes).
     const res = await agent.get('/api/profile').expect(200);
     expect(res.body.email).toBe(email);
   });
@@ -40,12 +38,10 @@ describe('authentication: POST /api/login/local', () => {
 
     await agent.post('/api/login/local').send({ email, password: 'WrongPassword123!', rememberMe: false }).expect(400);
 
-    // No valid session cookie was set, so protected endpoints stay closed.
     await agent.get('/api/profile').expect(401);
   });
 
   it('rejects login for a user with no roles (deactivated account, 400)', async () => {
-    // A user with zero roles is treated as deactivated by LocalStrategy.
     const { email, password } = await createUser({}, []);
     const anon = await anonAgent();
 
@@ -70,21 +66,18 @@ describe('authorization: role enforcement', () => {
     const { agent } = await loginAs([Roles.SIGNEE]);
     const { user: victim } = await createUser({}, [Roles.GENERAL]);
 
-    // DELETE /api/user/:id is @Security('local', ['ADMIN']).
     await agent.delete(`/api/user/${victim.id}`).expect(401);
   });
 
   it('denies a SIGNEE-only user the ADMIN/GENERAL/AUDIT user table endpoint with 401', async () => {
     const { agent } = await loginAs([Roles.SIGNEE]);
 
-    // POST /api/user/table is @Security('local', ['GENERAL', 'ADMIN', 'AUDIT']).
     await agent.post('/api/user/table').send({}).expect(401);
   });
 
   it('denies a SIGNEE-only user the ADMIN-only role list endpoint with 401', async () => {
     const { agent } = await loginAs([Roles.SIGNEE]);
 
-    // GET /api/role is @Security('local', ['ADMIN']).
     await agent.get('/api/role').expect(401);
   });
 

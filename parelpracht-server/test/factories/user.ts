@@ -12,15 +12,10 @@ export const ALL_ROLES = [Roles.ADMIN, Roles.GENERAL, Roles.FINANCIAL, Roles.SIG
 
 export interface CreatedUser {
   user: User;
-  /** Plaintext credentials, only set when a password was provided. */
   email: string;
   password: string;
 }
 
-/**
- * Create a persisted user with the given roles and a local-login identity.
- * Returns the user plus the plaintext credentials for logging in via supertest.
- */
 export async function createUser(
   overrides: Partial<User> = {},
   roleNames: Roles[] = ALL_ROLES,
@@ -31,7 +26,6 @@ export async function createUser(
   const roleRepo = ds.getRepository(Role);
 
   const roles = roleNames.length ? await roleRepo.findBy({ name: In(roleNames) }) : [];
-  // Stable, normalize-safe email so passport's normalizeEmail() matches on login.
   const email = `u-${faker.string.uuid()}@example.org`;
 
   const user = await userRepo.save(

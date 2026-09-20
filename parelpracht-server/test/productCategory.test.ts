@@ -115,7 +115,6 @@ describe('ProductCategory API', () => {
       const { agent } = await loginAs();
 
       await agent.delete(`/api/category/${cat.id}`).expect(400);
-      // Still present.
       await agent.get(`/api/category/${cat.id}`).expect(200);
     });
   });
@@ -132,8 +131,6 @@ describe('ProductCategory API', () => {
     });
 
     it('forbids a non-admin from creating a category (401)', async () => {
-      // Create requires ADMIN; GENERAL may read but not create.
-      // Note: this API returns 401 (not 403) for insufficient scope (see expressAuthentication).
       const { agent } = await loginAs([Roles.GENERAL]);
       await agent.post('/api/category').send({ name: 'Should Fail' }).expect(401);
     });

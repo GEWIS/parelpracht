@@ -29,7 +29,6 @@ describe('VAT endpoints', () => {
       const res = await agent.post('/api/VAT/table').send({ skip: 0, take: 1 }).expect(200);
 
       expect(res.body.list).toHaveLength(1);
-      // count reflects the full set, not the page size
       expect(res.body.count).toBe(3);
     });
 
@@ -70,7 +69,6 @@ describe('VAT endpoints', () => {
       const [summary] = res.body;
       expect(typeof summary.id).toBe('number');
       expect(summary.amount).toBe(2100);
-      // getVATSummaries selects only ['id', 'amount']
       expect(summary.category).toBeUndefined();
     });
 
@@ -139,7 +137,6 @@ describe('VAT endpoints', () => {
 
     it('rejects a non-ADMIN user with 401', async () => {
       const vat = await createVAT();
-      // GENERAL can read but not update VAT
       const { agent } = await loginAs([Roles.GENERAL]);
       await agent.put(`/api/VAT/${vat.id}`).send({ category: VAT.LOW, amount: 900 }).expect(401);
     });

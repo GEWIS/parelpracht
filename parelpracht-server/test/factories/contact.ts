@@ -6,10 +6,6 @@ import { Gender } from '../../src/entity/enums/Gender';
 import { ContactFunction } from '../../src/entity/enums/ContactFunction';
 import { createCompany } from './company';
 
-/**
- * Create a persisted contact. A contact requires a company: pass one via
- * `overrides.company`/`overrides.companyId`, otherwise a fresh company is created.
- */
 export async function createContact(overrides: Partial<Contact> = {}): Promise<Contact> {
   const ds = await getDataSource();
   const repo = ds.getRepository(Contact);
@@ -20,7 +16,6 @@ export async function createContact(overrides: Partial<Contact> = {}): Promise<C
     companyId = company.id;
   }
 
-  // company is a relation we resolve via companyId; drop it from the column overrides.
   const { company: _company, companyId: _companyId, ...rest } = overrides as Partial<Contact> & { company?: Company };
 
   return repo.save(

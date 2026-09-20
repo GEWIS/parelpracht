@@ -106,7 +106,6 @@ describe('Contract: create (POST /contract)', () => {
     expect(res.body.companyId).toBe(company.id);
     expect(res.body.contactId).toBe(contact.id);
     expect(res.body.createdById).toBe(user.id);
-    // assignedToId defaults to the actor when none is supplied.
     expect(res.body.assignedToId).toBe(user.id);
 
     const statuses = res.body.activities.filter((a: { type: string }) => a.type === ActivityType.STATUS);
@@ -166,7 +165,6 @@ describe('Contract: create (POST /contract)', () => {
   it('forbids creation for a user without GENERAL/ADMIN (401)', async () => {
     const company = await createCompany();
     const contact = await createContact({ companyId: company.id });
-    // SIGNEE can read contracts but not create them.
     const { agent } = await loginAs([Roles.SIGNEE]);
 
     await agent.post('/api/contract').send({ title: 'Nope', companyId: company.id, contactId: contact.id }).expect(401);
@@ -198,12 +196,10 @@ describe('Contract: add a product instance (POST /contract/{id}/product)', () =>
     expect(res.body.basePrice).toBe(75000);
     expect(res.body.discount).toBe(5000);
 
-    // A NOTDELIVERED status activity is created alongside the instance.
     const statuses = res.body.activities.filter((a: { type: string }) => a.type === ActivityType.STATUS);
     expect(statuses).toHaveLength(1);
     expect(statuses[0].subType).toBe(ProductInstanceStatus.NOTDELIVERED);
 
-    // The product instance shows up when re-fetching the contract.
     const reload = await agent.get(`/api/contract/${contract.id}`).expect(200);
     expect(reload.body.products.map((p: { id: number }) => p.id)).toContain(res.body.id);
   });
@@ -281,7 +277,6 @@ describe('Contract: delete (DELETE /contract/{id})', () => {
 
     await agent.delete(`/api/contract/${contract.id}`).expect(400);
 
-    // The contract is still there.
     await agent.get(`/api/contract/${contract.id}`).expect(200);
   });
 
@@ -321,7 +316,6 @@ describe('Contract: product instance update + delete', () => {
     const product = await createProduct();
     const { agent } = await loginAs([Roles.GENERAL]);
 
-    // Add via the API so it carries exactly one (CREATED/NOTDELIVERED) status.
     const added = await agent
       .post(`/api/contract/${contract.id}/product`)
       .send({ productId: product.id, basePrice: 1000, details: '' })
@@ -377,8 +371,6 @@ describe('Contract: status activities', () => {
 });
 
 describe('Contract: PDF file generation (POST /contract/{id}/file/generate)', () => {
-  // The actual PDF/LaTeX generation shells out, so we only assert the auth guard
-  // and the request validation here rather than driving a real render.
   it('rejects an anonymous caller with 401', async () => {
     const { contract } = await createContract();
     const anon = await anonAgent();
@@ -421,7 +413,6 @@ describe('Contract: PDF file generation (POST /contract/{id}/file/generate)', ()
     const { contract } = await createContract();
     const { agent } = await loginAs([Roles.GENERAL]);
 
-    // Missing/invalid fields => validation fails before any LaTeX is invoked.
     await agent.post(`/api/contract/${contract.id}/file/generate`).send({ language: 'KLINGON' }).expect(400);
   });
 });
