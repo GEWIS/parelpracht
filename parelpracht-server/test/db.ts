@@ -19,14 +19,25 @@ export async function initTestDb(): Promise<DataSource> {
   return dataSource;
 }
 
+let tableNames: string[] | undefined;
+
+async function getTableNames(dataSource: DataSource): Promise<string[]> {
+  if (!tableNames) {
+    const rows: { t: string }[] = await dataSource.query(
+      'SELECT table_name AS t FROM information_schema.tables WHERE table_schema = DATABASE()',
+    );
+    tableNames = rows.map(({ t }) => t);
+  }
+  return tableNames;
+}
+
 export async function resetDb(): Promise<void> {
   const dataSource = await getDataSource();
-  const rows: { t: string }[] = await dataSource.query(
-    'SELECT table_name AS t FROM information_schema.tables WHERE table_schema = DATABASE()',
-  );
+  const tables = await getTableNames(dataSource);
+
   await dataSource.query('SET FOREIGN_KEY_CHECKS = 0');
-  for (const { t } of rows) {
-    await dataSource.query(`TRUNCATE TABLE \`${t}\``);
+  for (const table of tables) {
+    await dataSource.query(`DELETE FROM \`${table}\``);
   }
   await dataSource.query('SET FOREIGN_KEY_CHECKS = 1');
 
