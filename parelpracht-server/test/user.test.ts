@@ -7,7 +7,6 @@ import { Roles } from '../src/entity/enums/Roles';
 import { Gender } from '../src/entity/enums/Gender';
 import { User } from '../src/entity/User';
 
-/** A valid body for POST /api/user, satisfying UserController.validateUserParams. */
 function newUserBody(overrides: Record<string, unknown> = {}) {
   return {
     email: `created-${faker.string.uuid()}@example.org`,
@@ -43,7 +42,6 @@ describe('UserController: list / read', () => {
     expect(res.body).toHaveProperty('list');
     expect(res.body).toHaveProperty('count');
     expect(Array.isArray(res.body.list)).toBe(true);
-    // The acting admin plus the extra user exist.
     expect(res.body.count).toBeGreaterThanOrEqual(2);
     expect(res.body.list.map((u: User) => u.id)).toContain(user.id);
   });
@@ -84,14 +82,12 @@ describe('UserController: list / read', () => {
 describe('UserController: create', () => {
   it('POST /api/user creates a user as admin', async () => {
     const { agent } = await loginAs([Roles.ADMIN]);
-    // Create requires password + rememberMe (UserParams); update does not.
     const body = newUserBody({ password: 'Password123!', rememberMe: false });
 
     const res = await agent.post('/api/user').send(body).expect(200);
     expect(res.body.id).toBeGreaterThan(0);
     expect(res.body.email).toBe(body.email);
 
-    // Persisted with the requested role and a local identity.
     const ds = await getDataSource();
     const saved = await ds.getRepository(User).findOne({
       where: { id: res.body.id },
@@ -109,7 +105,6 @@ describe('UserController: create', () => {
 
   it('POST /api/user rejects an invalid body (400)', async () => {
     const { agent } = await loginAs([Roles.ADMIN]);
-    // Missing required firstName/lastName/function and a non-email email.
     await agent.post('/api/user').send({ email: 'not-an-email', roles: [] }).expect(400);
   });
 });
@@ -135,7 +130,6 @@ describe('UserController: update / assign roles', () => {
 
     const ds = await getDataSource();
     const saved = await ds.getRepository(User).findOne({ where: { id: user.id }, relations: ['roles'] });
-    // Self role change is a no-op: still only GENERAL, never escalated to ADMIN.
     expect(saved!.roles.map((r) => r.name)).toEqual([Roles.GENERAL]);
   });
 
@@ -173,7 +167,7 @@ describe('UserController: delete', () => {
 
     const ds = await getDataSource();
     const stillThere = await ds.getRepository(User).findOne({ where: { id: target.id } });
-    expect(stillThere).toBeNull(); // soft-deleted, excluded by default scope
+    expect(stillThere).toBeNull();
   });
 
   it('DELETE /api/user/:id is denied for a non-admin (401)', async () => {

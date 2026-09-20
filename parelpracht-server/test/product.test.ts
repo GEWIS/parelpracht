@@ -4,7 +4,6 @@ import { createProduct, createProductCategory, createValueAddedTax, createProduc
 import { ProductStatus } from '../src/entity/enums/ProductStatus';
 import { Roles } from '../src/entity/enums/Roles';
 
-/** A complete, valid create/update body referencing existing FK rows. */
 async function validProductBody(overrides: Record<string, unknown> = {}) {
   const category = await createProductCategory();
   const vat = await createValueAddedTax();
@@ -87,7 +86,6 @@ describe('Product API', () => {
 
       expect(res.body.id).toBe(product.id);
       expect(res.body.nameEnglish).toBe('Single Product');
-      // Eager relations exposed by the service.
       expect(Array.isArray(res.body.files)).toBe(true);
       expect(Array.isArray(res.body.activities)).toBe(true);
     });
@@ -135,7 +133,6 @@ describe('Product API', () => {
   describe('PUT /api/product/{id} (update)', () => {
     it('updates a product with a full valid body', async () => {
       const product = await createProduct();
-      // The PUT handler runs the FULL product validator, so send a complete body.
       const body = await validProductBody({
         nameEnglish: 'Updated Name',
         targetPrice: 55500,
@@ -154,7 +151,6 @@ describe('Product API', () => {
     it('rejects a partial/invalid body with 400', async () => {
       const product = await createProduct();
       const { agent } = await loginAs();
-      // Missing the required text fields => full validator fails.
       await agent.put(`/api/product/${product.id}`).send({ nameEnglish: 'Only this' }).expect(400);
     });
   });
@@ -176,7 +172,6 @@ describe('Product API', () => {
 
       const res = await agent.post(`/api/product/${product.id}/pricing`).expect(200);
 
-      // Shares the product's primary key, seeded with an empty description/table.
       expect(res.body.id).toBe(product.id);
       expect(res.body.description).toBe('');
       expect(res.body.data).toEqual([['']]);
@@ -254,8 +249,6 @@ describe('Product API', () => {
     });
 
     it('forbids an AUDIT-only user from the table endpoint (401)', async () => {
-      // table requires GENERAL/ADMIN; AUDIT can hit /compact but not /table.
-      // Note: this API returns 401 (not 403) for insufficient scope (see expressAuthentication).
       const { agent } = await loginAs([Roles.AUDIT]);
       await agent.post('/api/product/table').send({ skip: 0, take: 25 }).expect(401);
     });
@@ -267,7 +260,6 @@ describe('Product API', () => {
     });
 
     it('forbids a non-admin from creating a product (401)', async () => {
-      // create requires ADMIN.
       const body = await validProductBody();
       const { agent } = await loginAs([Roles.GENERAL]);
       await agent.post('/api/product').send(body).expect(401);
@@ -275,7 +267,6 @@ describe('Product API', () => {
 
     it('forbids a non-admin from adding pricing (401)', async () => {
       const product = await createProduct();
-      // pricing mutations require ADMIN; GENERAL is insufficient.
       const { agent } = await loginAs([Roles.GENERAL]);
       await agent.post(`/api/product/${product.id}/pricing`).expect(401);
     });

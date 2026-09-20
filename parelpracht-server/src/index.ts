@@ -63,11 +63,6 @@ export function setupSessionSupport(dataSource: DataSource, app: Express) {
   // config();
 }
 
-/**
- * Build the fully-configured Express app (sessions, passport, routes, static
- * mounts, error handler) against the given data source. Does not call listen()
- * or start timed events, so it can be reused by tests (supertest).
- */
 export function createApp(dataSource: DataSource): Express {
   const app = express();
 
@@ -146,7 +141,6 @@ export function createApp(dataSource: DataSource): Express {
   return app;
 }
 
-// Only bootstrap a listening server when run directly, not when imported by tests.
 if (process.env.NODE_ENV !== 'test') {
   AppDataSource.initialize()
     .then(async (dataSource) => {

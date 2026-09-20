@@ -4,8 +4,6 @@ import { MariaDbContainer, StartedMariaDbContainer } from '@testcontainers/maria
 
 const CONFIG_PATH = path.join(process.cwd(), 'test', '.db-config.json');
 
-// Runs once before the whole test run: start a throwaway MariaDB and write its
-// connection params where the per-worker setup file can read them.
 export default async function globalSetup() {
   const container: StartedMariaDbContainer = await new MariaDbContainer('mariadb:11')
     .withDatabase('parelpracht_test')

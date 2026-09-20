@@ -7,13 +7,6 @@ import { Gender } from '../src/entity/enums/Gender';
 import { ContactFunction } from '../src/entity/enums/ContactFunction';
 import type { ContactParams } from '../src/services/ContactService';
 
-/**
- * A valid create/update payload containing only documented ContactParams fields.
- * The controller's express-validator chain marks gender, lastName, companyId,
- * function and (for non-SIGNATORY/ASSISTING/OLD functions) email as required, so
- * even PUT must send a full valid body. telephone is omitted because it is
- * validated with isMobilePhone('any'). tsoa throws on extra fields.
- */
 function contactPayload(companyId: number, overrides: Partial<ContactParams> = {}): ContactParams {
   return {
     gender: Gender.MALE,
@@ -167,7 +160,6 @@ describe('ContactController', () => {
     });
 
     it('rejects create for a user lacking GENERAL/ADMIN (401)', async () => {
-      // create is @Security('local', ['GENERAL', 'ADMIN']); SIGNEE is not enough.
       const company = await createCompany();
       const { agent } = await loginAs([Roles.SIGNEE]);
 
@@ -179,7 +171,6 @@ describe('ContactController', () => {
       const contact = await createContact({ companyId: company.id });
       const { agent } = await loginAs([Roles.AUDIT]);
 
-      // delete is GENERAL/ADMIN only; AUDIT can read the table but not delete.
       await agent.delete(`/api/contact/${contact.id}`).expect(401);
     });
 

@@ -6,12 +6,6 @@ import { Roles } from '../src/entity/enums/Roles';
 import { CompanyStatus } from '../src/entity/enums/CompanyStatus';
 import type { CompanyParams } from '../src/services/CompanyService';
 
-/**
- * A valid create/update payload containing only documented CompanyParams fields.
- * tsoa is configured with `noImplicitAdditionalProperties: throw-on-extras`, so
- * any extra field (id, createdAt, ...) would cause a 400. phoneNumber is omitted
- * because the controller validates it with isMobilePhone('any').
- */
 function companyPayload(overrides: Partial<CompanyParams> = {}): CompanyParams {
   return {
     name: 'Test Company BV',
@@ -61,7 +55,6 @@ describe('CompanyController', () => {
 
       expect(res.body.id).toBe(company.id);
       expect(res.body.name).toBe('Get Me BV');
-      // getCompany() eagerly loads these relations.
       expect(Array.isArray(res.body.contacts)).toBe(true);
       expect(Array.isArray(res.body.invoices)).toBe(true);
     });
@@ -141,7 +134,6 @@ describe('CompanyController', () => {
     });
 
     it('rejects create for a user without the ADMIN role (401)', async () => {
-      // create is @Security('local', ['ADMIN']); GENERAL alone is not enough.
       const { agent } = await loginAs([Roles.GENERAL]);
 
       await agent.post('/api/company').send(companyPayload()).expect(401);
@@ -157,7 +149,6 @@ describe('CompanyController', () => {
     });
 
     it('rejects the table for a user lacking all required roles (401)', async () => {
-      // table requires FINANCIAL/GENERAL/ADMIN/AUDIT; SIGNEE alone is not enough.
       const { agent } = await loginAs([Roles.SIGNEE]);
 
       await agent.post('/api/company/table').send({}).expect(401);

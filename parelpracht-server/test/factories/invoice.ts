@@ -18,14 +18,12 @@ import ActivityService from '../../src/services/ActivityService';
 import type { FullActivityParams } from '../../src/services/ActivityService';
 import type { User } from '../../src/entity/User';
 
-/** Default VAT amounts (stored * 100, i.e. 21% -> 2100). */
 const VAT_AMOUNTS: Record<VAT, number> = {
   [VAT.ZERO]: 0,
   [VAT.LOW]: 900,
   [VAT.HIGH]: 2100,
 };
 
-/** Find-or-create a ValueAddedTax row for the given category. */
 export async function createVat(category: VAT = VAT.HIGH): Promise<ValueAddedTax> {
   const ds = await getDataSource();
   const repo = ds.getRepository(ValueAddedTax);
@@ -34,7 +32,6 @@ export async function createVat(category: VAT = VAT.HIGH): Promise<ValueAddedTax
   return repo.save(repo.create({ category, amount: VAT_AMOUNTS[category] }));
 }
 
-/** Find-or-create a single shared product category. */
 async function createProductCategory(): Promise<ProductCategory> {
   const ds = await getDataSource();
   const repo = ds.getRepository(ProductCategory);
@@ -43,7 +40,6 @@ async function createProductCategory(): Promise<ProductCategory> {
   return repo.save(repo.create({ name: faker.commerce.department() }));
 }
 
-/** Create a persisted Product (defaults to the HIGH VAT category). */
 export async function createProduct(overrides: Partial<Product> = {}, vatCategory: VAT = VAT.HIGH): Promise<Product> {
   const ds = await getDataSource();
   const repo = ds.getRepository(Product);
@@ -64,7 +60,6 @@ export async function createProduct(overrides: Partial<Product> = {}, vatCategor
   );
 }
 
-/** Create a Contact for a company (Contract requires a contact). */
 async function createContact(company: Company): Promise<Contact> {
   const ds = await getDataSource();
   const repo = ds.getRepository(Contact);
@@ -77,7 +72,6 @@ async function createContact(company: Company): Promise<Contact> {
   );
 }
 
-/** Create a Contract for a company (a ProductInstance must hang off a contract). */
 export async function createContract(company: Company, createdBy: User): Promise<Contract> {
   const ds = await getDataSource();
   const repo = ds.getRepository(Contract);
@@ -102,11 +96,6 @@ export interface CreateProductInstanceOptions {
   vatCategory?: VAT;
 }
 
-/**
- * Create a ProductInstance not yet attached to any invoice. The instance hangs
- * off a contract of the given company so it is eligible to be invoiced for that
- * company.
- */
 export async function createProductInstance(opts: CreateProductInstanceOptions): Promise<ProductInstance> {
   const ds = await getDataSource();
   const repo = ds.getRepository(ProductInstance);
@@ -126,16 +115,9 @@ export async function createProductInstance(opts: CreateProductInstanceOptions):
 export interface CreateInvoiceOptions {
   company?: Company;
   createdBy?: User;
-  /**
-   * How many ProductInstances to create and attach to the invoice. Defaults to
-   * 0 so the invoice is deletable (delete is blocked when it has products).
-   */
   productCount?: number;
-  /** Price (excl. VAT) of every created product instance. */
   basePrice?: number;
-  /** Discount applied to every created product instance. */
   discount?: number;
-  /** VAT category of the created products. */
   vatCategory?: VAT;
   overrides?: Partial<Invoice>;
 }
@@ -147,15 +129,6 @@ export interface CreatedInvoice {
   products: ProductInstance[];
 }
 
-/**
- * Create a fully persisted invoice: a company, a creating user, a CREATED status
- * activity (so it shows up in summary/compact/expired queries), and optionally a
- * number of attached product instances.
- *
- * Product instances are linked by setting `invoiceId` explicitly (the
- * Invoice.products OneToMany has no cascade, so saving the parent does not
- * persist the child FK).
- */
 export async function createInvoice(opts: CreateInvoiceOptions = {}): Promise<CreatedInvoice> {
   const ds = await getDataSource();
   const repo = ds.getRepository(Invoice);
@@ -174,8 +147,6 @@ export async function createInvoice(opts: CreateInvoiceOptions = {}): Promise<Cr
     }),
   );
 
-  // CREATED status activity, mirroring InvoiceService.createInvoice. Required for
-  // the invoice to appear in the raw-query summary/compact/expired endpoints.
   await new ActivityService(new InvoiceActivity(), { actor: createdBy }).createActivity(InvoiceActivity, {
     entityId: invoice.id,
     type: ActivityType.STATUS,

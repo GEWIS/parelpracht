@@ -2,7 +2,6 @@ import type { DataSource } from 'typeorm';
 
 let ds: DataSource | undefined;
 
-/** The shared, initialised test data source (the app's global AppDataSource). */
 export async function getDataSource(): Promise<DataSource> {
   if (!ds) {
     ds = (await import('../src/database')).default;
@@ -13,7 +12,6 @@ export async function getDataSource(): Promise<DataSource> {
   return ds;
 }
 
-/** Initialise the DB and seed the role rows the app expects. */
 export async function initTestDb(): Promise<DataSource> {
   const dataSource = await getDataSource();
   const { default: UserService } = await import('../src/services/UserService');
@@ -21,7 +19,6 @@ export async function initTestDb(): Promise<DataSource> {
   return dataSource;
 }
 
-/** Wipe every table, then recreate the role rows (auth needs them). */
 export async function resetDb(): Promise<void> {
   const dataSource = await getDataSource();
   const rows: { t: string }[] = await dataSource.query(

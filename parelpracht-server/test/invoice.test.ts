@@ -35,7 +35,6 @@ describe('Invoice API', () => {
       const res = await agent.post('/api/invoice/table').send({ skip: 0, take: 2 }).expect(200);
 
       expect(res.body.list).toHaveLength(2);
-      // count is the total ignoring pagination
       expect(res.body.count).toBe(3);
     });
 
@@ -69,10 +68,8 @@ describe('Invoice API', () => {
       expect(res.body.companyId).toBe(company.id);
       expect(res.body.company.id).toBe(company.id);
       expect(res.body.products).toHaveLength(1);
-      // Money is stored in cents on the product instance.
       expect(res.body.products[0].basePrice).toBe(50000);
       expect(res.body.products[0].discount).toBe(5000);
-      // VAT category/amount is carried by the related product.
       expect(res.body.products[0].product.valueAddedTax.category).toBe(VAT.HIGH);
       expect(res.body.products[0].product.valueAddedTax.amount).toBe(2100);
     });
@@ -100,10 +97,8 @@ describe('Invoice API', () => {
       expect(res.body.id).toBeGreaterThan(0);
       expect(res.body.title).toBe('Created Invoice');
       expect(res.body.companyId).toBe(company.id);
-      // assignedTo and createdBy both default to the acting user.
       expect(res.body.createdById).toBe(user.id);
       expect(res.body.assignedToId).toBe(user.id);
-      // A CREATED status activity is created alongside the invoice.
       const statuses = res.body.activities.filter((a: { type: string }) => a.type === 'STATUS');
       expect(statuses).toHaveLength(1);
       expect(statuses[0].subType).toBe(InvoiceStatus.CREATED);
@@ -132,7 +127,6 @@ describe('Invoice API', () => {
       const companyA = await createCompany();
       const companyB = await createCompany();
       const { user } = await createUser();
-      // Instance hangs off companyB's contract.
       const instance = await createProductInstance({ company: companyB, createdBy: user });
 
       const { agent } = await loginAs([Roles.GENERAL]);
@@ -176,7 +170,6 @@ describe('Invoice API', () => {
 
       const { agent } = await loginAs([Roles.GENERAL]);
       const res = await agent.delete(`/api/invoice/${invoice.id}`);
-      // tsoa emits 204 for void handlers; accept 200 too for robustness.
       expect([200, 204]).toContain(res.status);
 
       await agent.get(`/api/invoice/${invoice.id}`).expect(404);
@@ -188,7 +181,6 @@ describe('Invoice API', () => {
       const { agent } = await loginAs([Roles.GENERAL]);
       await agent.delete(`/api/invoice/${invoice.id}`).expect(400);
 
-      // Still retrievable afterwards.
       await agent.get(`/api/invoice/${invoice.id}`).expect(200);
     });
   });
@@ -202,14 +194,12 @@ describe('Invoice API', () => {
 
       const { agent } = await loginAs([Roles.GENERAL]);
 
-      // The controller takes a productId that is actually a ProductInstance id.
       const addRes = await agent
         .post(`/api/invoice/${invoice.id}/product`)
         .send({ productId: instance.id })
         .expect(200);
       expect(addRes.body.invoiceId).toBe(invoice.id);
 
-      // It now shows up on the invoice.
       const withProduct = await agent.get(`/api/invoice/${invoice.id}`).expect(200);
       expect(withProduct.body.products.map((p: { id: number }) => p.id)).toContain(instance.id);
 
@@ -223,7 +213,6 @@ describe('Invoice API', () => {
 
   describe('financial / summary endpoints', () => {
     it('GET /api/invoice/compact returns summaries with a summed value', async () => {
-      // value = sum(basePrice - discount) over the invoice's product instances.
       const { invoice, company } = await createInvoice({
         productCount: 2,
         basePrice: 100000,
@@ -239,7 +228,6 @@ describe('Invoice API', () => {
       expect(summary).toBeDefined();
       expect(summary.companyId).toBe(company.id);
       expect(summary.status).toBe(InvoiceStatus.CREATED);
-      // 2 instances * (100000 - 10000) = 180000 cents.
       expect(Number(summary.value)).toBe(180000);
     });
 
@@ -251,7 +239,6 @@ describe('Invoice API', () => {
     });
 
     it('PUT /api/invoice/lastseen succeeds for a FINANCIAL user', async () => {
-      // lastseen is FINANCIAL-gated and persists a server setting (void response).
       const { agent } = await loginAs([Roles.FINANCIAL]);
       const res = await agent.put('/api/invoice/lastseen');
       expect([200, 204]).toContain(res.status);
@@ -265,8 +252,6 @@ describe('Invoice API', () => {
       const { invoice } = await createInvoice({ company, createdBy: user });
       const product = await createProduct({}, VAT.LOW);
       const instance = await createProductInstance({ company, createdBy: user });
-      // Re-point the instance at the LOW-vat product (productId is readonly at the
-      // entity level, so update it via raw SQL).
       const ds = await getDataSource();
       await ds.query('UPDATE product_instance SET productId = ? WHERE id = ?', [product.id, instance.id]);
 
@@ -292,7 +277,6 @@ describe('Invoice API', () => {
     });
 
     it('rejects a non-FINANCIAL user on the finance-gated lastseen endpoint', async () => {
-      // lastseen is @Security('local', ['FINANCIAL']); a GENERAL user is rejected.
       const { agent } = await loginAs([Roles.GENERAL]);
       await agent.put('/api/invoice/lastseen').expect(401);
     });
@@ -307,7 +291,6 @@ describe('Invoice API', () => {
     });
 
     it('allows an AUDIT user to read the invoice list', async () => {
-      // table is also granted to AUDIT.
       const company = await createCompany();
       const { user } = await createUser();
       await createInvoice({ company, createdBy: user });
