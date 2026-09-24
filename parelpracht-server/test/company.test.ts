@@ -107,6 +107,74 @@ describe('CompanyController', () => {
     });
   });
 
+  describe('email and vatNumber', () => {
+    it('persists both fields on create', async () => {
+      const { agent } = await loginAs();
+
+      const res = await agent
+        .post('/api/company')
+        .send(companyPayload({ email: 'info@testcompany.nl', vatNumber: 'NL123456789B01' }))
+        .expect(200);
+
+      expect(res.body.email).toBe('info@testcompany.nl');
+      expect(res.body.vatNumber).toBe('NL123456789B01');
+    });
+
+    it('defaults both fields to an empty string when omitted', async () => {
+      const { agent } = await loginAs();
+
+      const res = await agent.post('/api/company').send(companyPayload()).expect(200);
+
+      expect(res.body.email).toBe('');
+      expect(res.body.vatNumber).toBe('');
+    });
+
+    it('updates both fields', async () => {
+      const company = await createCompany({ email: 'old@testcompany.nl', vatNumber: 'NL123456789B01' });
+      const { agent } = await loginAs();
+
+      const res = await agent
+        .put(`/api/company/${company.id}`)
+        .send(companyPayload({ email: 'new@testcompany.nl', vatNumber: 'NL987654321B01' }))
+        .expect(200);
+
+      expect(res.body.email).toBe('new@testcompany.nl');
+      expect(res.body.vatNumber).toBe('NL987654321B01');
+    });
+
+    it('rejects a malformed email address (400)', async () => {
+      const { agent } = await loginAs();
+
+      const res = await agent
+        .post('/api/company')
+        .send(companyPayload({ email: 'not-an-email' }))
+        .expect(400);
+      expect(res.body).toHaveProperty('error');
+    });
+
+    it('rejects a VAT number that is not Dutch (400)', async () => {
+      const { agent } = await loginAs();
+
+      const res = await agent
+        .post('/api/company')
+        .send(companyPayload({ vatNumber: 'DE123456789' }))
+        .expect(400);
+      expect(res.body).toHaveProperty('error');
+    });
+
+    it('normalizes a padded email and a spaced, lowercase VAT number', async () => {
+      const { agent } = await loginAs();
+
+      const res = await agent
+        .post('/api/company')
+        .send(companyPayload({ email: '  info@testcompany.nl  ', vatNumber: 'nl 123456789 b01' }))
+        .expect(200);
+
+      expect(res.body.email).toBe('info@testcompany.nl');
+      expect(res.body.vatNumber).toBe('NL123456789B01');
+    });
+  });
+
   describe('DELETE /api/company/{id}', () => {
     it('deletes an empty company and returns 204', async () => {
       const company = await createCompany();

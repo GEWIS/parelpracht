@@ -54,6 +54,8 @@ class CompaniesCreatePage extends Component<Props> {
       id: 0,
       name: '',
       description: '',
+      email: '',
+      vatNumber: '',
       phoneNumber: '',
       status: CompanyStatus.ACTIVE,
       comments: '',

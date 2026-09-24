@@ -17,6 +17,16 @@ import { authedUserHasRole } from '../../../stores/auth/selectors';
 import { withRouter, WithRouter } from '../../../WithRouter';
 import CountrySelector from './CountrySelector';
 
+const emailHasError = (value: string) => {
+  const email = value.trim();
+  return !validator.isEmpty(email) && !validator.isEmail(email);
+};
+
+const vatNumberHasError = (value: string) => {
+  const vatNumber = value.replace(/\s/g, '').toUpperCase();
+  return !validator.isEmpty(vatNumber) && !validator.isVAT(vatNumber, 'NL');
+};
+
 interface Props extends WithTranslation, WithRouter {
   create?: boolean;
   onCancel?: () => void;
@@ -37,6 +47,8 @@ interface State {
   editing: boolean;
   name: string;
   comments: string | undefined;
+  email: string;
+  vatNumber: string;
   phoneNumber: string | undefined;
   status: CompanyStatus;
   addressStreet: string;
@@ -75,6 +87,8 @@ class CompanyProps extends Component<Props, State> {
     return {
       name: company.name,
       comments: company.comments,
+      email: company.email,
+      vatNumber: company.vatNumber,
       phoneNumber: company.phoneNumber,
       status: company.status,
       addressStreet: company.addressStreet,
@@ -94,6 +108,8 @@ class CompanyProps extends Component<Props, State> {
       name: this.state.name,
       comments: this.state.comments,
       phoneNumber: this.state.phoneNumber,
+      email: this.state.email,
+      vatNumber: this.state.vatNumber,
       status: this.state.status,
       addressStreet: this.state.addressStreet,
       addressPostalCode: this.state.addressPostalCode,
@@ -146,13 +162,15 @@ class CompanyProps extends Component<Props, State> {
   };
 
   propsHaveErrors = (): boolean => {
-    const { name, phoneNumber, addressStreet, addressCity, addressPostalCode } = this.state;
+    const { name, phoneNumber, addressStreet, addressCity, addressPostalCode, email, vatNumber } = this.state;
     return (
       validator.isEmpty(name) ||
       (!validator.isEmpty(phoneNumber!) && !validator.isMobilePhone(phoneNumber!)) ||
       validator.isEmpty(addressStreet) ||
       validator.isEmpty(addressCity) ||
-      !validator.isPostalCode(addressPostalCode, 'any')
+      !validator.isPostalCode(addressPostalCode, 'any') ||
+      emailHasError(email) ||
+      vatNumberHasError(vatNumber)
     );
   };
 
@@ -161,6 +179,8 @@ class CompanyProps extends Component<Props, State> {
       editing,
       name,
       comments,
+      email,
+      vatNumber,
       phoneNumber,
       status,
       addressStreet,
@@ -229,6 +249,23 @@ class CompanyProps extends Component<Props, State> {
             />
           </Form.Group>
           <Form.Group widths="equal">
+            <Form.Field
+              disabled={!editing}
+              id="form-input-email"
+              fluid
+              control={Input}
+              label={t('entities.company.props.email')}
+              placeholder={t('entities.company.props.email')}
+              value={email}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                this.setState({
+                  email: e.target.value,
+                })
+              }
+              error={emailHasError(email)}
+            />
+          </Form.Group>
+          <Form.Group widths="equal">
             <Form.Field>
               <label htmlFor="form-check-status">{t('entities.product.props.status.header')}</label>
               <Checkbox
@@ -248,6 +285,21 @@ class CompanyProps extends Component<Props, State> {
                 }
               />
             </Form.Field>
+            <Form.Field
+              disabled={!editing}
+              id="form-input-vat-number"
+              fluid
+              control={Input}
+              label={t('entities.company.props.vatNumber')}
+              placeholder={t('entities.company.props.vatNumber')}
+              value={vatNumber}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                this.setState({
+                  vatNumber: e.target.value,
+                })
+              }
+              error={vatNumberHasError(vatNumber)}
+            />
           </Form.Group>
           <Form.Group widths="equal">
             <Form.Field disabled={!editing}>
@@ -335,7 +387,7 @@ class CompanyProps extends Component<Props, State> {
                 id="form-input-invoice-address-postal-code"
                 value={invoiceAddressPostalCode}
                 onChange={(e) => this.setState({ invoiceAddressPostalCode: e.target.value })}
-                placeholder={t('entities.company.props.PostalCode')}
+                placeholder={t('entities.company.props.postalCode')}
                 fluid
               />
             </Form.Field>

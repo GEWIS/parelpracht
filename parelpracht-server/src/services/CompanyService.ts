@@ -18,6 +18,8 @@ export interface CompanyParams {
   name: string;
   comments?: string;
   phoneNumber?: string;
+  email?: string;
+  vatNumber?: string;
   addressStreet: string;
   addressPostalCode: string;
   addressCity: string;
@@ -48,6 +50,13 @@ export interface ETCompanyListResponse {
     sumProducts: number;
     nrOfProducts: number;
   };
+}
+
+function normalizeCompanyParams<T extends Partial<CompanyParams>>(params: T): T {
+  const normalized = { ...params };
+  if (normalized.email !== undefined) normalized.email = normalized.email.trim();
+  if (normalized.vatNumber !== undefined) normalized.vatNumber = normalized.vatNumber.replace(/\s/g, '').toUpperCase();
+  return normalized;
 }
 
 export default class CompanyService {
@@ -97,7 +106,7 @@ export default class CompanyService {
 
   createCompany(params: CompanyParams): Promise<Company> {
     const company = {
-      ...params,
+      ...normalizeCompanyParams(params),
     } as Company;
     return this.repo.save(company);
   }
@@ -109,7 +118,7 @@ export default class CompanyService {
       !(await createActivitiesForEntityEdits<Company>(
         this.repo,
         company,
-        params,
+        normalizeCompanyParams(params),
         new ActivityService(new CompanyActivity(), { actor: this.actor }),
         CompanyActivity,
       ))

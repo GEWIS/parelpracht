@@ -49,6 +49,14 @@ export class Company extends BaseEnt {
   @Column({ default: '' })
   phoneNumber?: string;
 
+  /** General email address of the company */
+  @Column({ default: '' })
+  email!: string;
+
+  /** VAT number of this company */
+  @Column({ default: '' })
+  vatNumber!: string;
+
   /** Optional filename of a logo image */
   @Column({ default: '' })
   logoFilename!: string;

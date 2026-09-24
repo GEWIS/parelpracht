@@ -45,6 +45,11 @@ export class CompanyController extends Controller {
         body('invoiceAddressPostalCode').trim(),
         body('invoiceAddressCity').trim(),
         body('invoiceAddressCountry').trim(),
+        body('email').optional({ checkFalsy: true }).trim().isEmail(),
+        body('vatNumber')
+          .optional({ checkFalsy: true })
+          .customSanitizer((value: string) => value.replace(/\s/g, '').toUpperCase())
+          .isVAT('NL'),
         body('status').optional().isIn(Object.values(CompanyStatus)),
         body('endDate').optional({ checkFalsy: true }).isDate(),
       ],

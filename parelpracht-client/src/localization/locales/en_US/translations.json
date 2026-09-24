@@ -118,11 +118,13 @@
         "country": "Country",
         "description": "Description",
         "details": "Details",
+        "email": "Email address",
         "invoiceAddress": "Invoice address",
         "name": "Name",
         "number": "Telephone number",
         "postalCode": "Postal code",
-        "street": "Street and number"
+        "street": "Street and number",
+        "vatNumber": "VAT number"
       }
     },
     "contact": {
