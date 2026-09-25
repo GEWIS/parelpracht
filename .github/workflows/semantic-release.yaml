@@ -27,39 +27,62 @@ jobs:
       REGISTRY_USERNAME: ${{ secrets.SVC_GH_PARELPRACHT_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.SVC_GH_PARELPRACHT_PWD }}
 
-  pin:
+  deploy:
     needs: [versioning, release]
     if: ${{ needs.versioning.outputs.next-version != '' }}
     runs-on: ubuntu-latest
+    permissions: {}
     env:
       REGISTRY: abc.docker-registry.gewis.nl
       VERSION: ${{ needs.versioning.outputs.next-version }}
+      OVERLAY: parelpracht/overlays/production
     steps:
-      - name: Checkout gitops
+      - name: Create abc-deployments token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
+        with:
+          client-id: ${{ vars.ABC_DEPLOYMENTS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ABC_DEPLOYMENTS_APP_PRIVATE_KEY }}
+          owner: GEWIS
+          repositories: abc-deployments
+          permission-contents: write
+
+      - name: Checkout abc-deployments
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
-          ref: gitops
-          ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
+          repository: GEWIS/abc-deployments
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0
 
       - name: Install kustomize
         run: |
-          curl -sSfL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.5.0/kustomize_v5.5.0_linux_amd64.tar.gz" | tar -xz
+          curl -sSfLo kustomize.tar.gz "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.5.0/kustomize_v5.5.0_linux_amd64.tar.gz"
+          echo "6703a3a70a0c47cf0b37694030b54f1175a9dfeb17b3818b623ed58b9dbc2a77  kustomize.tar.gz" | sha256sum -c -
+          tar -xzf kustomize.tar.gz kustomize
           sudo install -m 0755 kustomize /usr/local/bin/kustomize
+          rm kustomize kustomize.tar.gz
 
       - name: Pin production images to the released version
         run: |
           for app in client server; do
-            (cd deploy/production && kustomize edit set image "${REGISTRY}/crm/parelpracht/${app}:${VERSION}")
+            (cd "${OVERLAY}" && kustomize edit set image "${REGISTRY}/crm/parelpracht/${app}:${VERSION}")
           done
 
-      - name: Commit the pin
+      - name: Commit and push
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- deploy/production/kustomization.yaml; then
+          if git diff --quiet -- "${OVERLAY}/kustomization.yaml"; then
             echo "No image change to commit"
-          else
-            git add deploy/production/kustomization.yaml
-            git commit -m "chore(deploy): pin production images to ${VERSION}"
-            git push origin HEAD:gitops
+            exit 0
           fi
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq .id)+${APP_SLUG}[bot]@users.noreply.github.com"
+          git add "${OVERLAY}/kustomization.yaml"
+          git commit -m "chore(parelpracht): deploy ${VERSION} to production"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((attempt * 5))
+          done
+          exit 1
