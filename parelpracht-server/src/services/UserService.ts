@@ -9,7 +9,7 @@ import { User } from '../entity/User';
 import { ApiError, HTTPStatus } from '../helpers/error';
 import { addQueryWhereClause } from '../helpers/filters';
 import { Roles } from '../entity/enums/Roles';
-import FileHelper, { uploadUserAvatarDirLoc, uploadUserBackgroundDirLoc } from '../helpers/fileHelper';
+import FileHelper, { appRoot, uploadUserAvatarDirLoc, uploadUserBackgroundDirLoc } from '../helpers/fileHelper';
 import { IdentityLDAP } from '../entity/IdentityLDAP';
 import { ldapEnabled } from '../auth';
 import AppDataSource from '../database';
@@ -242,7 +242,7 @@ export default class UserService {
     if (user.avatarFilename === '') return user;
 
     try {
-      FileHelper.removeFileAtLoc(path.join(__dirname, '/../../', uploadUserAvatarDirLoc, user.avatarFilename));
+      FileHelper.removeFileAtLoc(path.join(appRoot, uploadUserAvatarDirLoc, user.avatarFilename));
     } finally {
       await this.repo.update(user.id, { avatarFilename: '' });
     }
@@ -254,7 +254,7 @@ export default class UserService {
     const user = await this.getUser(id);
     if (user.backgroundFilename === '') return user;
     try {
-      FileHelper.removeFileAtLoc(path.join(__dirname, '/../../', uploadUserBackgroundDirLoc, user.backgroundFilename));
+      FileHelper.removeFileAtLoc(path.join(appRoot, uploadUserBackgroundDirLoc, user.backgroundFilename));
     } finally {
       await this.repo.update(user.id, { backgroundFilename: '' });
     }
