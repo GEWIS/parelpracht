@@ -28,6 +28,14 @@ import { Session } from './entity/Session';
 import localStrategy, { localLogin } from './auth/LocalStrategy';
 import { User } from './entity/User';
 import UserService from './services/UserService';
+import {
+  appRoot,
+  generateDirLoc,
+  uploadCompanyLogoDirLoc,
+  uploadDirLoc,
+  uploadUserBackgroundDirLoc,
+  workDirLoc,
+} from './helpers/fileHelper';
 import { ldapLogin, LDAPStrategy } from './auth';
 import AppDataSource from './database';
 
@@ -101,22 +109,8 @@ export function createApp(dataSource: DataSource): Express {
 
   app.use(methodOverride());
 
-  // Create file generation folders
-  if (!fs.existsSync(path.join(__dirname, '/../tmp'))) {
-    fs.mkdirSync(path.join(__dirname, '/../tmp'));
-  }
-  if (!fs.existsSync(path.join(__dirname, '/../data/generated'))) {
-    // Recursive so data is also created
-    fs.mkdirSync(path.join(__dirname, '/../data/generated'), { recursive: true });
-  }
-  if (!fs.existsSync(path.join(__dirname, '/../data/uploads'))) {
-    fs.mkdirSync(path.join(__dirname, '/../data/uploads'));
-  }
-  if (!fs.existsSync(path.join(__dirname, '/../data/logos'))) {
-    fs.mkdirSync(path.join(__dirname, '/../data/logos'));
-  }
-  if (!fs.existsSync(path.join(__dirname, '/../data/backgrounds'))) {
-    fs.mkdirSync(path.join(__dirname, '/../data/backgrounds'));
+  for (const dir of [workDirLoc, generateDirLoc, uploadDirLoc, uploadCompanyLogoDirLoc, uploadUserBackgroundDirLoc]) {
+    fs.mkdirSync(path.join(appRoot, dir), { recursive: true });
   }
 
   // Give additional error information when in development mode.
@@ -131,12 +125,12 @@ export function createApp(dataSource: DataSource): Express {
   if (process.env.NODE_ENV === 'development') {
     app.use('/api/swagger-ui', serverSwagger, setupSwagger(swaggerDocument));
     app.get('/api/swagger.json', (req, res) => {
-      res.sendFile(path.join(__dirname, './public/swagger.json'));
+      res.json(swaggerDocument);
     });
   }
 
-  app.use('/static/logos', expressStatic(path.join(__dirname, '../data/logos')));
-  app.use('/static/backgrounds', expressStatic(path.join(__dirname, '../data/backgrounds')));
+  app.use('/static/logos', expressStatic(path.join(appRoot, uploadCompanyLogoDirLoc)));
+  app.use('/static/backgrounds', expressStatic(path.join(appRoot, uploadUserBackgroundDirLoc)));
 
   return app;
 }

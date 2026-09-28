@@ -19,6 +19,7 @@ import {
 } from '../pdfgenerator/GenSettings';
 import PdfGenerator from '../pdfgenerator/PdfGenerator';
 import FileHelper, {
+  appRoot,
   uploadCompanyLogoDirLoc,
   uploadDirLoc,
   uploadUserAvatarDirLoc,
@@ -232,7 +233,7 @@ export default class FileService {
     }
 
     const randomFileName = `${uuidv4()}.${extension(request.file.mimetype)}`;
-    file.location = path.join(__dirname, '/../../', uploadDirLoc, randomFileName);
+    file.location = path.join(appRoot, uploadDirLoc, randomFileName);
     fs.writeFileSync(file.location, request.file.buffer);
     file.downloadName = request.file.originalname;
 
@@ -325,7 +326,7 @@ export default class FileService {
     }
 
     const randomFileName = `${uuidv4()}.${fileExtension}`;
-    const fileLocation = path.join(__dirname, '/../../', uploadCompanyLogoDirLoc, randomFileName);
+    const fileLocation = path.join(appRoot, uploadCompanyLogoDirLoc, randomFileName);
     company.logoFilename = randomFileName;
     fs.writeFileSync(fileLocation, request.file.buffer);
     try {
@@ -350,7 +351,7 @@ export default class FileService {
     }
 
     const randomFileName = `${uuidv4()}.${fileExtension}`;
-    const fileLocation = path.join(__dirname, '/../../', uploadUserAvatarDirLoc, randomFileName);
+    const fileLocation = path.join(appRoot, uploadUserAvatarDirLoc, randomFileName);
     user.avatarFilename = randomFileName;
     fs.writeFileSync(fileLocation, request.file.buffer);
     try {
@@ -375,7 +376,7 @@ export default class FileService {
     }
 
     const randomFileName = `${uuidv4()}.${fileExtension}`;
-    const fileLocation = path.join(__dirname, '/../../', uploadUserBackgroundDirLoc, randomFileName);
+    const fileLocation = path.join(appRoot, uploadUserBackgroundDirLoc, randomFileName);
     user.backgroundFilename = randomFileName;
     fs.writeFileSync(fileLocation, request.file.buffer);
     try {

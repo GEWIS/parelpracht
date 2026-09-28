@@ -10,7 +10,7 @@ import { Contact } from '../entity/Contact';
 import { User } from '../entity/User';
 import { ProductInstance } from '../entity/ProductInstance';
 import Currency from '../helpers/currency';
-import FileHelper, { generateDirLoc, templateDirLoc, workDirLoc } from '../helpers/fileHelper';
+import FileHelper, { appRoot, generateDirLoc, templateDirLoc, workDirLoc } from '../helpers/fileHelper';
 import { Language } from '../entity/enums/Language';
 import BaseFile from '../entity/file/BaseFile';
 import replaceAll from '../helpers/replaceAll';
@@ -42,9 +42,9 @@ export default class PdfGenerator {
   private readonly templateDir: string;
 
   constructor() {
-    this.workDir = path.join(__dirname, '/../../', workDirLoc);
-    this.saveDir = path.join(__dirname, '/../../', generateDirLoc);
-    this.templateDir = path.join(__dirname, '/../../', templateDirLoc);
+    this.workDir = path.join(appRoot, workDirLoc);
+    this.saveDir = path.join(appRoot, generateDirLoc);
+    this.templateDir = path.join(appRoot, templateDirLoc);
   }
 
   /**

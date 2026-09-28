@@ -5,6 +5,7 @@ import mime from 'mime';
 import BaseFile from '../entity/file/BaseFile';
 import { Controller } from 'tsoa';
 
+export const appRoot = process.cwd();
 export const workDirLoc = 'tmp/';
 export const generateDirLoc = 'data/generated/';
 export const uploadDirLoc = 'data/uploads/';
@@ -29,17 +30,6 @@ export default class FileHelper {
     controller.setHeader('Content-Disposition', `attachment; filename="${file.downloadName}"`);
 
     return fs.createReadStream(file.location);
-  }
-
-  /**
-   * Convert the location on the disk to a HTTP url the user can access
-   * @param diskLoc Location of a file on the disk
-   */
-  public static diskLocToWebLoc(diskLoc: string): string {
-    const rootDir = path.join(__dirname, '/../../');
-    let relDir = diskLoc.substring(rootDir.length);
-    relDir = relDir.replace('\\', '/');
-    return `/${relDir.replace('\\', '/')}`;
   }
 
   /**
